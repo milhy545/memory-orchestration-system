@@ -1,0 +1,107 @@
+{
+  "update_date": "2025-07-22T13:30:07.873928",
+  "comparisons": {
+    "zen-mcp-server": {
+      "current": {
+        "version": "custom",
+        "last_commit": "unknown",
+        "last_updated": "2025-07-22"
+      },
+      "latest": {
+        "version": "0.1.0",
+        "last_commit": "ad6b216",
+        "last_updated": "2025-06-30"
+      },
+      "needs_update": true
+    },
+    "gmail-mcp-server": {
+      "current": {
+        "version": "not_installed",
+        "last_commit": "none",
+        "last_updated": "never"
+      },
+      "latest": {
+        "version": "0.1.0",
+        "last_commit": "86930e6",
+        "last_updated": "2025-04-10"
+      },
+      "needs_update": true
+    }
+  },
+  "integration_plan": {
+    "backup_required": true,
+    "updates": [
+      {
+        "repo": "zen-mcp-server",
+        "action": "version_update",
+        "from_version": "custom",
+        "to_version": "0.1.0",
+        "features": [
+          "Tool: version",
+          "Tool: tracer",
+          "Tool: thinkdeep",
+          "Tool: testgen",
+          "Tool: secaudit",
+          "Tool: refactor",
+          "Tool: precommit",
+          "Tool: planner",
+          "Tool: models",
+          "Tool: listmodels",
+          "Tool: docgen",
+          "Tool: debug",
+          "Tool: consensus",
+          "Tool: codereview",
+          "Tool: chat",
+          "Tool: challenge",
+          "Tool: analyze",
+          "Provider: xai",
+          "Provider: registry",
+          "Provider: openrouter_registry",
+          "Provider: openrouter",
+          "Provider: openai_provider",
+          "Provider: openai_compatible",
+          "Provider: gemini",
+          "Provider: dial",
+          "Provider: custom",
+          "Provider: base"
+        ]
+      }
+    ],
+    "new_installations": [
+      {
+        "repo": "gmail-mcp-server",
+        "action": "fresh_install",
+        "features": []
+      }
+    ],
+    "risks": [
+      "Configuration compatibility",
+      "API endpoint changes",
+      "New dependencies",
+      "Port conflicts"
+    ],
+    "estimated_time": "5-10 minutes"
+  },
+  "test_result": true,
+  "log": [
+    "[2025-07-22 13:29:45] Cloning latest repositories...",
+    "[2025-07-22 13:29:48] \u2705 Successfully cloned zen-mcp-server",
+    "[2025-07-22 13:30:05] \u2705 Successfully cloned gmail-mcp-server",
+    "[2025-07-22 13:30:05] Comparing versions...",
+    "[2025-07-22 13:30:05] \u2705 Backup created: /home/milhy777/orchestration_backup_20250722_133005",
+    "[2025-07-22 13:30:05] \u2705 Updated zen_coordinator_updated.py",
+    "[2025-07-22 13:30:05] \u2705 Updated zen_config_updated.py",
+    "[2025-07-22 13:30:05] \u2705 Updated tools_updated/",
+    "[2025-07-22 13:30:05] \u2705 Updated providers_updated/",
+    "[2025-07-22 13:30:07] \u2705 Gmail MCP server integrated",
+    "[2025-07-22 13:30:07] Testing updated system...",
+    "[2025-07-22 13:30:07] \u2705 Coordinator connectivity test passed",
+    "[2025-07-22 13:30:07] \u2705 Memory system test passed",
+    "[2025-07-22 13:30:07] \ud83d\udcca Tests: 2/2 passed (100.0%)"
+  ],
+  "summary": {
+    "repos_checked": 2,
+    "updates_applied": 2,
+    "success": true
+  }
+}
