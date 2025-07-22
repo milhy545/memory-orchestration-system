@@ -1,0 +1,13 @@
+requests>=2.28.0
+sqlite3
+concurrent.futures
+datetime
+json
+http.server
+socketserver
+subprocess
+threading
+pathlib
+hashlib
+ast
+urllib3
