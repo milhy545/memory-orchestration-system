@@ -53,7 +53,7 @@
 AI_ENGINE = "Google Gemini API"
 EMBEDDING_SIZE = 768
 SIMILARITY_METHOD = "Cosine similarity"
-API_KEY = "AIzaSyAygZwIf8jDLyzHASNg7cNKz9383U93iV4"
+API_KEY = "YOUR_GEMINI_API_KEY_HERE"
 
 # Test verified working:
 Store: "Python machine learning" 
@@ -210,7 +210,7 @@ ZEN_COORDINATOR="http://192.168.0.58:8020/mcp"
 QDRANT_DB="http://192.168.0.58:6333"
 
 # AI Configuration
-GEMINI_API_KEY="AIzaSyAygZwIf8jDLyzHASNg7cNKz9383U93iV4"
+GEMINI_API_KEY="YOUR_GEMINI_API_KEY_HERE"
 EMBEDDING_MODEL="text-embedding-004"
 VECTOR_DIMENSIONS=768
 ```
@@ -309,3 +309,13 @@ kill $(pgrep -f unified_memory_forai_daemon) && python3 /home/milhy777/unified_m
 6. ✅ **Production-ready** documentation a examples
 
 **Ready for GitHub repository deployment!** 🚀
+
+---
+
+## 🙏 **Acknowledgments**
+
+### Special Thanks
+
+**David Strejc** - Principal architect and visionary behind this memory orchestration system. The core concepts, architectural design, and foundational ideas that made this project possible are his creation.
+
+See [CREDITS.md](CREDITS.md) for full attribution and additional contributors.

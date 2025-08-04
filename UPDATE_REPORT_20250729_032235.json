@@ -1,0 +1,107 @@
+{
+  "update_date": "2025-07-29T03:22:35.972517",
+  "comparisons": {
+    "zen-mcp-server": {
+      "current": {
+        "version": "custom",
+        "last_commit": "unknown",
+        "last_updated": "2025-07-22"
+      },
+      "latest": {
+        "version": "0.1.0",
+        "last_commit": "ad6b216",
+        "last_updated": "2025-06-30"
+      },
+      "needs_update": true
+    },
+    "gmail-mcp-server": {
+      "current": {
+        "version": "not_installed",
+        "last_commit": "none",
+        "last_updated": "never"
+      },
+      "latest": {
+        "version": "0.1.0",
+        "last_commit": "86930e6",
+        "last_updated": "2025-04-10"
+      },
+      "needs_update": true
+    }
+  },
+  "integration_plan": {
+    "backup_required": true,
+    "updates": [
+      {
+        "repo": "zen-mcp-server",
+        "action": "version_update",
+        "from_version": "custom",
+        "to_version": "0.1.0",
+        "features": [
+          "Tool: version",
+          "Tool: tracer",
+          "Tool: thinkdeep",
+          "Tool: testgen",
+          "Tool: secaudit",
+          "Tool: refactor",
+          "Tool: precommit",
+          "Tool: planner",
+          "Tool: models",
+          "Tool: listmodels",
+          "Tool: docgen",
+          "Tool: debug",
+          "Tool: consensus",
+          "Tool: codereview",
+          "Tool: chat",
+          "Tool: challenge",
+          "Tool: analyze",
+          "Provider: xai",
+          "Provider: registry",
+          "Provider: openrouter_registry",
+          "Provider: openrouter",
+          "Provider: openai_provider",
+          "Provider: openai_compatible",
+          "Provider: gemini",
+          "Provider: dial",
+          "Provider: custom",
+          "Provider: base"
+        ]
+      }
+    ],
+    "new_installations": [
+      {
+        "repo": "gmail-mcp-server",
+        "action": "fresh_install",
+        "features": []
+      }
+    ],
+    "risks": [
+      "Configuration compatibility",
+      "API endpoint changes",
+      "New dependencies",
+      "Port conflicts"
+    ],
+    "estimated_time": "5-10 minutes"
+  },
+  "test_result": false,
+  "log": [
+    "[2025-07-29 03:22:11] Cloning latest repositories...",
+    "[2025-07-29 03:22:13] \u2705 Successfully cloned zen-mcp-server",
+    "[2025-07-29 03:22:32] \u2705 Successfully cloned gmail-mcp-server",
+    "[2025-07-29 03:22:32] Comparing versions...",
+    "[2025-07-29 03:22:33] \u2705 Backup created: /home/milhy777/orchestration_backup_20250729_032232",
+    "[2025-07-29 03:22:33] \u2705 Updated zen_coordinator_updated.py",
+    "[2025-07-29 03:22:33] \u2705 Updated zen_config_updated.py",
+    "[2025-07-29 03:22:33] \u2705 Updated tools_updated/",
+    "[2025-07-29 03:22:33] \u2705 Updated providers_updated/",
+    "[2025-07-29 03:22:34] \u2705 Gmail MCP server integrated",
+    "[2025-07-29 03:22:34] Testing updated system...",
+    "[2025-07-29 03:22:35] \u274c Coordinator test error: HTTPConnectionPool(host='192.168.0.58', port=8020): Max retries exceeded with url: /mcp (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x79ce3c375940>: Failed to establish a new connection: [Errno 111] Connection refused'))",
+    "[2025-07-29 03:22:35] \u274c Memory test error: HTTPConnectionPool(host='192.168.0.58', port=8020): Max retries exceeded with url: /mcp (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x79ce3c3adbd0>: Failed to establish a new connection: [Errno 111] Connection refused'))",
+    "[2025-07-29 03:22:35] \ud83d\udcca Tests: 0/2 passed (0.0%)"
+  ],
+  "summary": {
+    "repos_checked": 2,
+    "updates_applied": 2,
+    "success": false
+  }
+}

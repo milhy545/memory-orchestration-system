@@ -23,7 +23,7 @@ class MemoryOrchestrationTests:
         self.verbose = verbose
         
         # Endpoints - HYBRID LOCAL/SERVER
-        self.cldmemory_url = "http://localhost:8007"  # Local CLDMEMORY API
+        self.cldmemory_url = "http://192.168.0.58:8007"  # Direct Memory MCP on server
         self.coordinator_url = "http://192.168.0.58:8020"  # Main coordinator URL
         self.coordinator_health_url = "http://192.168.0.58:8020/health"  # Health check
         self.coordinator_tools_url = "http://192.168.0.58:8020/tools"  # Tools endpoint

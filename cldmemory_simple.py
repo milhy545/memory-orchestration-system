@@ -11,7 +11,8 @@ import sqlite3
 
 class SimpleCLDMemory:
     def __init__(self):
-        self.gemini_api_key = "AIzaSyAygZwIf8jDLyzHASNg7cNKz9383U93iV4"
+        import os
+        self.gemini_api_key = os.getenv("GEMINI_API_KEY", "YOUR_GEMINI_API_KEY_HERE")
         self.db_path = "/home/milhy777/memory-orchestration-system/data/cldmemory.db"
         self.max_memories = 5000  # Increased to 5K
         self.init_database()
