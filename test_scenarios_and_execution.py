@@ -208,8 +208,8 @@ class MCPTestScenarios:
     # ===========================================
     
     def test_github_repository_analysis(self):
-        """SCÉNÁŘ: Analýza GitHub repository"""
-        print("📋 Testujeme: Kompletní analýzu David Strejc repository")
+        """SCENARIO: GitHub repository analysis"""
+        print("📋 Testing: Complete David Strejc repository analysis")
         
         # 1. Seznam repositories
         repos_result = self.call_mcp_tool(self.servers["github"], "github_list_repos", {

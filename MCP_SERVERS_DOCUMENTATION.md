@@ -1,8 +1,8 @@
-# 🎼 MCP Servers Orchestration - Kompletní Dokumentace
+# 🎼 MCP Servers Orchestration - Complete Documentation
 
-## 📋 **PŘEHLED NOVÝCH MCP SERVERŮ**
+## 📋 **NEW MCP SERVERS OVERVIEW**
 
-Tato orchestrace nyní obsahuje **7 specializovaných MCP serverů** + univerzální koordinátor:
+This orchestration now contains **7 specialized MCP servers** + universal coordinator:
 
 ### **🎯 MCP Orchestration Coordinator**
 - **Soubor**: `mcp_orchestration_coordinator.py`
