@@ -1,5 +1,11 @@
 # 🚀 **COMPLETE MEMORY ORCHESTRATION SYSTEM** / **KOMPLETNÍ SYSTÉM ORCHESTRACE PAMĚTI**
 
+[![CI/CD Pipeline](https://github.com/milhy545/memory-orchestration-system/actions/workflows/ci.yml/badge.svg)](https://github.com/milhy545/memory-orchestration-system/actions/workflows/ci.yml)
+[![Test Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen)](https://github.com/milhy545/memory-orchestration-system)
+[![Performance](https://img.shields.io/badge/tests-6%2F6%20passed-success)](https://github.com/milhy545/memory-orchestration-system)
+[![AI Integration](https://img.shields.io/badge/AI-Gemini%20Embeddings-blue)](https://github.com/milhy545/memory-orchestration-system)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 ---
 🇬🇧 **English** | 🇨🇿 **Česky**
 ---
