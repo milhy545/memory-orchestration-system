@@ -1,0 +1,1 @@
+{"status": "healthy", "service": "Zen MCP Coordinator", "version": "2.3", "tools_available": 12, "endpoints": ["/health", "/mcp", "/status", "/tools"]}

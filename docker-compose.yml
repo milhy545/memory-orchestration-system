@@ -1,0 +1,198 @@
+version: "3.8"
+
+services:
+  # PostgreSQL Database - Unified database for all MCP services
+  postgresql:
+    image: postgres:15
+    container_name: mcp-postgresql
+    environment:
+      - POSTGRES_DB=mcp_unified
+      - POSTGRES_USER=mcp_admin
+      - POSTGRES_PASSWORD=mcp_secure_2024
+    ports:
+      - "5432:5432"
+    volumes:
+      - /home/orchestration/data/postgresql:/var/lib/postgresql/data
+      - /home/orchestration/data/backups:/backups
+    restart: unless-stopped
+    networks:
+      - mcp-network
+
+  # Redis for caching and session management
+  redis:
+    image: redis:7-alpine
+    container_name: mcp-redis
+    ports:
+      - "8009:6379"
+    volumes:
+      - /home/orchestration/data/redis:/data
+    restart: unless-stopped
+    networks:
+      - mcp-network
+
+  # MCP Services with organized structure
+  filesystem-mcp:
+    build: /home/orchestration/mcp-servers/filesystem-mcp
+    container_name: mcp-filesystem
+    ports:
+      - "8001:8000"
+    volumes:
+      - /home/orchestration/data/workspaces:/workspace
+      - /home:/home:ro
+      - /tmp:/tmp
+    environment:
+      - MCP_DATABASE_URL=postgresql://mcp_admin:mcp_secure_2024@postgresql:5432/mcp_unified
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - postgresql
+      - redis
+    restart: unless-stopped
+    networks:
+      - mcp-network
+
+  git-mcp:
+    build: /home/orchestration/mcp-servers/git-mcp
+    container_name: mcp-git
+    ports:
+      - "8002:8000"
+    volumes:
+      - /home/orchestration/data/repositories:/repositories
+      - /home/orchestration/data/workspaces:/workspace
+    environment:
+      - MCP_DATABASE_URL=postgresql://mcp_admin:mcp_secure_2024@postgresql:5432/mcp_unified
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - postgresql
+      - redis
+    restart: unless-stopped
+    networks:
+      - mcp-network
+
+  terminal-mcp:
+    build: /home/orchestration/mcp-servers/terminal-mcp
+    container_name: mcp-terminal
+    ports:
+      - "8003:8000"
+    privileged: true
+    environment:
+      - MCP_DATABASE_URL=postgresql://mcp_admin:mcp_secure_2024@postgresql:5432/mcp_unified
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - postgresql
+      - redis
+    restart: unless-stopped
+    networks:
+      - mcp-network
+
+  database-mcp:
+    build: /home/orchestration/mcp-servers/database-mcp
+    container_name: mcp-database
+    ports:
+      - "8004:8000"
+    volumes:
+      - /home/orchestration/data/database-connections:/connections
+    environment:
+      - MCP_DATABASE_URL=postgresql://mcp_admin:mcp_secure_2024@postgresql:5432/mcp_unified
+      - REDIS_URL=redis://redis:6379
+      - DEFAULT_POSTGRES_URL=postgresql://mcp_admin:mcp_secure_2024@postgresql:5432/mcp_unified
+    depends_on:
+      - postgresql
+      - redis
+    restart: unless-stopped
+    networks:
+      - mcp-network
+
+  memory-mcp:
+    build: /home/orchestration/mcp-servers/memory-mcp
+    container_name: mcp-memory
+    ports:
+      - "8005:8000"
+    volumes:
+      - /home/orchestration/data/memory:/data
+    environment:
+      - MCP_DATABASE_URL=postgresql://mcp_admin:mcp_secure_2024@postgresql:5432/mcp_unified
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - postgresql
+      - redis
+    restart: unless-stopped
+    networks:
+      - mcp-network
+
+  # CLDMEMORY API - Advanced Memory MCP Server
+  cldmemory-api:
+    image: node:18-alpine
+    container_name: mcp-cldmemory
+    ports:
+      - "8006:8000"
+    working_dir: /app
+    volumes:
+      - /home/orchestration/mcp-servers/cldmemory:/app
+    environment:
+      - MCP_DATABASE_URL=postgresql://mcp_admin:mcp_secure_2024@postgresql:5432/mcp_unified
+      - REDIS_URL=redis://redis:6379
+      - QDRANT_URL=http://qdrant-vector:6333
+      - GEMINI_API_KEY=AIzaSyAygZwIf8jDLyzHASNg7cNKz9383U93iV4
+      - MCP_SERVER_PORT=8000
+    command: sh -c "npm install && npm start"
+    depends_on:
+      - postgresql
+      - redis
+      - qdrant-vector
+    restart: unless-stopped
+    networks:
+      - mcp-network
+
+  # Qdrant Vector Database
+  qdrant-vector:
+    image: qdrant/qdrant:latest
+    container_name: mcp-qdrant
+    ports:
+      - "8007:6333"
+      - "10004:6334"
+    volumes:
+      - /home/orchestration/data/qdrant:/qdrant/storage
+    environment:
+      - QDRANT__SERVICE__HTTP_PORT=6333
+      - QDRANT__SERVICE__GRPC_PORT=6334
+    restart: unless-stopped
+    networks:
+      - mcp-network
+
+  webm-transcriber-mcp:
+    build: /home/orchestration/mcp-servers/webm-transcriber
+    container_name: mcp-transcriber
+    ports:
+      - "8008:8000"
+    volumes:
+      - /home/orchestration/data/transcripts:/transcripts
+      - /tmp:/tmp
+    environment:
+      - MCP_DATABASE_URL=postgresql://mcp_admin:mcp_secure_2024@postgresql:5432/mcp_unified
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - postgresql
+      - redis
+    restart: unless-stopped
+    networks:
+      - mcp-network
+
+  research-mcp:
+    build: /home/orchestration/mcp-servers/research-mcp
+    container_name: mcp-research
+    ports:
+      - "8011:8000"
+    environment:
+      - PERPLEXITY_API_KEY=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
+      - MCP_DATABASE_URL=postgresql://mcp_admin:mcp_secure_2024@postgresql:5432/mcp_unified
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - postgresql
+      - redis
+    restart: unless-stopped
+    networks:
+      - mcp-network
+
+networks:
+  mcp-network:
+    driver: bridge

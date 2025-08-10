@@ -1,0 +1,13 @@
+{
+  "name": "cldmemory-mcp-server",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "fastify": "^4.24.3",
+    "pg": "^8.11.3",
+    "ioredis": "^5.3.2"
+  }
+}
