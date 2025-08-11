@@ -47,9 +47,9 @@ MCP_SERVICES = {
     "memory": {
         "description": "Memory & Context MCP Server", 
         "tools": ["store_memory", "search_memories", "get_context", "memory_stats", "list_memories"],
-        "internal_port": 8006,
+        "internal_port": 8005,
         "status": "unknown",
-        "container": "mcp-cldmemory"
+        "container": "mcp-memory"
     },
     "transcriber": {
         "description": "WebM Transcriber MCP Server",
@@ -134,11 +134,11 @@ def log_mcp_request(service, tool, success, response_time=None):
     except Exception as e:
         logging.warning(f"Failed to log request: {e}")
 
-def check_mcp_service_health(port, "mcp-cldmemory"=None):
+def check_mcp_service_health(port, container_name=None):
     """Check if MCP service is healthy using socket connection"""
     try:
         # In Docker container, use container names
-        hostname = "mcp-cldmemory" if "mcp-cldmemory" else "localhost"
+        hostname = container_name if container_name else "localhost"
         # MCP services run on port 8000 inside their containers
         service_port = 8000
         
@@ -150,7 +150,7 @@ def check_mcp_service_health(port, "mcp-cldmemory"=None):
     except:
         return False
 
-def call_mcp_service(port, method, params=None, "mcp-cldmemory"=None):
+def call_mcp_service(port, method, params=None, container_name=None):
     """Call MCP service using proper JSON-RPC 2.0 protocol with caching"""
     import time
     start_time = time.time()
@@ -187,8 +187,8 @@ def call_mcp_service(port, method, params=None, "mcp-cldmemory"=None):
                 "Content-Length": str(len(data))
             }
             
-            hostname = "mcp-cldmemory" if "mcp-cldmemory" else "localhost"
-            service_port = 8000 if "mcp-cldmemory" else port
+            hostname = container_name if container_name else "localhost"
+            service_port = 8000 if container_name else port
             req = urllib.request.Request(
                 f"http://{hostname}:{service_port}/mcp",
                 data=data,
@@ -212,7 +212,7 @@ def call_mcp_service(port, method, params=None, "mcp-cldmemory"=None):
                 }
         except Exception as e:
             # Try alternative endpoints as fallback
-            return {"success": False, "error": "MCP call failed, fallback disabled"}
+            return adapt_to_native_api(port, method, params, container_name)
         
     except Exception as e:
         response_time = time.time() - start_time
@@ -245,17 +245,17 @@ def _execute_http_request(url, method="GET", data=None):
         return {"success": False, "error": f"Request failed: {str(e)}"}
 
 
-def adapt_to_native_api(port, method, params=None, "mcp-cldmemory"=None):
+def adapt_to_native_api(port, method, params=None, container_name=None):
     """Adapt MCP calls to native FastAPI endpoints as fallback."""
     
     tool_name = params.get("name", "")
     tool_args = params.get("arguments", {})
 
     # --- Memory MCP (port 8005) Adaptation ---
-    if port == 8006:
+    if port == 8005:
         if tool_name == "search_memories":
-            hostname = "mcp-cldmemory" if "mcp-cldmemory" else "localhost"
-            service_port = 8000 if "mcp-cldmemory" else port
+            hostname = container_name if container_name else "localhost"
+            service_port = 8000 if container_name else port
             url = f"http://{hostname}:{service_port}/memory/search"
             payload = {
                 "query": tool_args.get("query", ""),
@@ -264,21 +264,21 @@ def adapt_to_native_api(port, method, params=None, "mcp-cldmemory"=None):
             return _execute_http_request(url, method="POST", data=payload)
 
         elif tool_name == "memory_stats":
-            hostname = "mcp-cldmemory" if "mcp-cldmemory" else "localhost"
-            service_port = 8000 if "mcp-cldmemory" else port
+            hostname = container_name if container_name else "localhost"
+            service_port = 8000 if container_name else port
             url = f"http://{hostname}:{service_port}/memory/stats"
             return _execute_http_request(url, method="GET")
 
         elif tool_name == "list_memories":
             limit = tool_args.get("limit", 20)
-            hostname = "mcp-cldmemory" if "mcp-cldmemory" else "localhost"
-            service_port = 8000 if "mcp-cldmemory" else port
+            hostname = container_name if container_name else "localhost"
+            service_port = 8000 if container_name else port
             url = f"http://{hostname}:{service_port}/memory/list?limit={limit}"
             return _execute_http_request(url, method="GET")
             
         elif tool_name == "store_memory":
-            hostname = "mcp-cldmemory" if "mcp-cldmemory" else "localhost"
-            service_port = 8000 if "mcp-cldmemory" else port
+            hostname = container_name if container_name else "localhost"
+            service_port = 8000 if container_name else port
             url = f"http://{hostname}:{service_port}/memory/store"
             return _execute_http_request(url, method="POST", data=tool_args)
 
@@ -462,7 +462,6 @@ class ZENCoordinator(BaseHTTPRequestHandler):
             self.send_error(500, f"Stats error: {str(e)}")
     
     def handle_mcp_request(self):
-logging.info(f"MCP Request: tool={tool_name}, service={target_service}, port={target_port}, container={target_container}")
         """POST /mcp - hlavní MCP proxy endpoint pro organizovanou architekturu"""
         try:
             content_length = int(self.headers.get("Content-Length", 0))
@@ -497,7 +496,6 @@ logging.info(f"MCP Request: tool={tool_name}, service={target_service}, port={ta
             }
             
             # Call MCP service
-logging.info(f"Calling MCP service: {target_service} on {target_container}:{target_port}")
             result = call_mcp_service(target_port, "tools/call", mcp_params, target_container)
             
             # Log request
@@ -550,7 +548,6 @@ logging.info(f"Calling MCP service: {target_service} on {target_container}:{targ
                 return
             
             # Execute tool call
-logging.info(f"Calling MCP service: {target_service} on {target_container}:{target_port}")
             result = call_mcp_service(target_port, "tools/call", {
                 "name": tool_name,
                 "arguments": tool_args
