@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-ZEN Coordinator pro organizovanou MCP architekturu
-Bezpečný proxy pro MCP servery s PostgreSQL integrací a Redis cachingem
+ZEN Coordinator for organized MCP architecture
+Secure proxy for MCP servers with PostgreSQL integration and Redis caching
 """
 
 import json
@@ -14,52 +14,52 @@ import uuid
 import psycopg2
 import redis
 
-# Konfigurace organizovaných MCP serverů
+# Configuration for organized MCP servers
 MCP_SERVICES = {
     "filesystem": {
-        "description": "Enhanced Filesystem MCP (Organized)",
+        "description": "Enhanced Filesystem MCP Server",
         "tools": ["file_read", "file_write", "file_list", "file_search", "file_analyze"],
         "internal_port": 8001,
         "status": "unknown",
         "container": "mcp-filesystem"
     },
     "git": {
-        "description": "Git Operations MCP (Organized)",
+        "description": "Git Operations MCP Server",
         "tools": ["git_status", "git_commit", "git_push", "git_log", "git_diff"],
         "internal_port": 8002,
         "status": "unknown", 
         "container": "mcp-git"
     },
     "terminal": {
-        "description": "Terminal Operations MCP (Organized)",
+        "description": "Terminal Operations MCP Server",
         "tools": ["terminal_exec", "shell_command", "system_info"],
         "internal_port": 8003,
         "status": "unknown",
         "container": "mcp-terminal"
     },
     "database": {
-        "description": "Database Operations MCP (Organized)",
+        "description": "Database Operations MCP Server",
         "tools": ["db_query", "db_connect", "db_schema", "db_backup"],
         "internal_port": 8004,
         "status": "unknown",
         "container": "mcp-database"
     },
     "memory": {
-        "description": "Memory & Context MCP (Organized)", 
+        "description": "Memory & Context MCP Server", 
         "tools": ["store_memory", "search_memories", "get_context", "memory_stats", "list_memories"],
         "internal_port": 8005,
         "status": "unknown",
         "container": "mcp-memory"
     },
     "transcriber": {
-        "description": "WebM Transcriber MCP (Organized)",
+        "description": "WebM Transcriber MCP Server",
         "tools": ["transcribe_webm", "transcribe_url", "audio_convert"],
         "internal_port": 8008,
         "status": "unknown",
         "container": "mcp-transcriber"
     },
     "research": {
-        "description": "Research & Perplexity MCP (Organized)",
+        "description": "Research & Perplexity MCP Server",
         "tools": ["research_query", "perplexity_search", "web_search"],
         "internal_port": 8011,
         "status": "unknown",
@@ -248,7 +248,7 @@ def adapt_to_native_api(port, method, params=None):
 class ZENCoordinator(BaseHTTPRequestHandler):
     def log_message(self, format, *args):
         """Custom log format"""
-        logging.info(f"ZEN Coordinator (Organized) - {self.address_string()} - {format % args}")
+        logging.info(f"ZEN Coordinator - {self.address_string()} - {format % args}")
     
     def do_GET(self):
         """Handle GET requests"""
@@ -337,7 +337,7 @@ class ZENCoordinator(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(json.dumps({
             "status": health_status,
-            "service": "ZEN Coordinator (Organized)",
+            "service": "ZEN Coordinator",
             "port": 8020,
             "services_running": running_services,
             "services_total": total_services,
@@ -592,7 +592,7 @@ def main():
     # Setup logging
     logging.basicConfig(
         level=logging.INFO,
-        format="%(asctime)s - ZEN Coordinator (Organized) - %(levelname)s - %(message)s"
+        format="%(asctime)s - ZEN Coordinator - %(levelname)s - %(message)s"
     )
     
     # Setup database

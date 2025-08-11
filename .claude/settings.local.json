@@ -7,7 +7,11 @@
       "Bash(gh repo create:*)",
       "Bash(apk add:*)",
       "Bash(gh:*)",
-      "Bash(git remote remove:*)"
+      "Bash(git remote remove:*)",
+      "Bash(git remote set-url:*)",
+      "Bash(git push:*)",
+      "Bash(rg:*)",
+      "Bash(mkdir:*)"
     ],
     "deny": []
   }
