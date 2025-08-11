@@ -47,9 +47,9 @@ MCP_SERVICES = {
     "memory": {
         "description": "Memory & Context MCP Server", 
         "tools": ["store_memory", "search_memories", "get_context", "memory_stats", "list_memories"],
-        "internal_port": 8005,
+        "internal_port": 8006,
         "status": "unknown",
-        "container": "mcp-memory"
+        "container": "mcp-cldmemory"
     },
     "transcriber": {
         "description": "WebM Transcriber MCP Server",
@@ -212,7 +212,7 @@ def call_mcp_service(port, method, params=None, container_name=None):
                 }
         except Exception as e:
             # Try alternative endpoints as fallback
-            return adapt_to_native_api(port, method, params)
+            return {"success": False, "error": "MCP call failed, fallback disabled"}
         
     except Exception as e:
         response_time = time.time() - start_time
@@ -245,14 +245,14 @@ def _execute_http_request(url, method="GET", data=None):
         return {"success": False, "error": f"Request failed: {str(e)}"}
 
 
-def adapt_to_native_api(port, method, params=None):
+def adapt_to_native_api(port, method, params=None, container_name=None):
     """Adapt MCP calls to native FastAPI endpoints as fallback."""
     
     tool_name = params.get("name", "")
     tool_args = params.get("arguments", {})
 
     # --- Memory MCP (port 8005) Adaptation ---
-    if port == 8005:
+    if port == 8006:
         if tool_name == "search_memories":
             hostname = container_name if container_name else "localhost"
             service_port = 8000 if container_name else port
