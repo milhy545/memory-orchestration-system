@@ -6,6 +6,7 @@ logs/
 # Environment and configuration files with secrets
 .env
 *.env
+!.env.example
 config/secrets/
 
 # Database files
