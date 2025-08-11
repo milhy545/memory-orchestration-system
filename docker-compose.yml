@@ -1,6 +1,21 @@
 version: "3.8"
 
 services:
+  # ZEN Coordinator - Main HTTP to MCP bridge
+  zen-coordinator:
+    build: ./config
+    container_name: zen-coordinator
+    ports:
+      - "8020:8020"
+    environment:
+      - MCP_DATABASE_URL=${MCP_DATABASE_URL:-postgresql://mcp_admin:change_me_in_production@postgresql:5432/mcp_unified}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+    depends_on:
+      - postgresql
+      - redis
+    restart: unless-stopped
+    networks:
+      - mcp-network
   # PostgreSQL Database - Unified database for all MCP services
   postgresql:
     image: postgres:15

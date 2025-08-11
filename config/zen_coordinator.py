@@ -67,20 +67,48 @@ MCP_SERVICES = {
     }
 }
 
-# Database a cache konfigurace
-POSTGRES_CONFIG = {
-    "host": "localhost",
-    "port": 5432,
-    "database": "mcp_unified",
-    "user": "mcp_admin",
-    "password": "mcp_secure_2024"
-}
+# Database and cache configuration from environment
+import os
 
-REDIS_CONFIG = {
-    "host": "localhost",
-    "port": 6379,
-    "db": 0
-}
+# Parse DATABASE_URL or use individual components
+DATABASE_URL = os.getenv("MCP_DATABASE_URL", "postgresql://mcp_admin:mcp_secure_2024@postgresql:5432/mcp_unified")
+REDIS_URL = os.getenv("REDIS_URL", "redis://redis:6379")
+
+# Parse PostgreSQL URL
+if DATABASE_URL.startswith("postgresql://"):
+    from urllib.parse import urlparse
+    parsed = urlparse(DATABASE_URL)
+    POSTGRES_CONFIG = {
+        "host": parsed.hostname,
+        "port": parsed.port or 5432,
+        "database": parsed.path.lstrip('/'),
+        "user": parsed.username,
+        "password": parsed.password
+    }
+else:
+    POSTGRES_CONFIG = {
+        "host": os.getenv("POSTGRES_HOST", "postgresql"),
+        "port": int(os.getenv("POSTGRES_PORT", "5432")),
+        "database": os.getenv("POSTGRES_DB", "mcp_unified"),
+        "user": os.getenv("POSTGRES_USER", "mcp_admin"),
+        "password": os.getenv("POSTGRES_PASSWORD", "mcp_secure_2024")
+    }
+
+# Parse Redis URL
+if REDIS_URL.startswith("redis://"):
+    from urllib.parse import urlparse
+    parsed = urlparse(REDIS_URL)
+    REDIS_CONFIG = {
+        "host": parsed.hostname,
+        "port": parsed.port or 6379,
+        "db": 0
+    }
+else:
+    REDIS_CONFIG = {
+        "host": os.getenv("REDIS_HOST", "redis"),
+        "port": int(os.getenv("REDIS_PORT", "6379")),
+        "db": 0
+    }
 
 def get_redis_client():
     """Get Redis client for caching"""
@@ -106,18 +134,23 @@ def log_mcp_request(service, tool, success, response_time=None):
     except Exception as e:
         logging.warning(f"Failed to log request: {e}")
 
-def check_mcp_service_health(port):
+def check_mcp_service_health(port, container_name=None):
     """Check if MCP service is healthy using socket connection"""
     try:
+        # In Docker container, use container names
+        hostname = container_name if container_name else "localhost"
+        # MCP services run on port 8000 inside their containers
+        service_port = 8000
+        
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.settimeout(2)
-        result = sock.connect_ex(("localhost", port))
+        result = sock.connect_ex((hostname, service_port))
         sock.close()
         return result == 0
     except:
         return False
 
-def call_mcp_service(port, method, params=None):
+def call_mcp_service(port, method, params=None, container_name=None):
     """Call MCP service using proper JSON-RPC 2.0 protocol with caching"""
     import time
     start_time = time.time()
@@ -154,8 +187,10 @@ def call_mcp_service(port, method, params=None):
                 "Content-Length": str(len(data))
             }
             
+            hostname = container_name if container_name else "localhost"
+            service_port = 8000 if container_name else port
             req = urllib.request.Request(
-                f"http://localhost:{port}/mcp",
+                f"http://{hostname}:{service_port}/mcp",
                 data=data,
                 headers=headers,
                 method="POST"
@@ -219,7 +254,9 @@ def adapt_to_native_api(port, method, params=None):
     # --- Memory MCP (port 8005) Adaptation ---
     if port == 8005:
         if tool_name == "search_memories":
-            url = f"http://localhost:{port}/memory/search"
+            hostname = container_name if container_name else "localhost"
+            service_port = 8000 if container_name else port
+            url = f"http://{hostname}:{service_port}/memory/search"
             payload = {
                 "query": tool_args.get("query", ""),
                 "limit": tool_args.get("limit", 10)
@@ -227,16 +264,22 @@ def adapt_to_native_api(port, method, params=None):
             return _execute_http_request(url, method="POST", data=payload)
 
         elif tool_name == "memory_stats":
-            url = f"http://localhost:{port}/memory/stats"
+            hostname = container_name if container_name else "localhost"
+            service_port = 8000 if container_name else port
+            url = f"http://{hostname}:{service_port}/memory/stats"
             return _execute_http_request(url, method="GET")
 
         elif tool_name == "list_memories":
             limit = tool_args.get("limit", 20)
-            url = f"http://localhost:{port}/memory/list?limit={limit}"
+            hostname = container_name if container_name else "localhost"
+            service_port = 8000 if container_name else port
+            url = f"http://{hostname}:{service_port}/memory/list?limit={limit}"
             return _execute_http_request(url, method="GET")
             
         elif tool_name == "store_memory":
-            url = f"http://localhost:{port}/memory/store"
+            hostname = container_name if container_name else "localhost"
+            service_port = 8000 if container_name else port
+            url = f"http://{hostname}:{service_port}/memory/store"
             return _execute_http_request(url, method="POST", data=tool_args)
 
     # Fallback for other services
@@ -280,7 +323,7 @@ class ZENCoordinator(BaseHTTPRequestHandler):
         """GET /services - seznam MCP služeb s organizovanou architekturou"""
         # Update service status
         for service_name, config in MCP_SERVICES.items():
-            config["status"] = "running" if check_mcp_service_health(config["internal_port"]) else "offline"
+            config["status"] = "running" if check_mcp_service_health(config["internal_port"], config["container"]) else "offline"
         
         response_data = {
             "zen_coordinator": {
@@ -309,7 +352,7 @@ class ZENCoordinator(BaseHTTPRequestHandler):
     def handle_health_check(self):
         """GET /health - health check koordinátor s database stavem"""
         running_services = sum(1 for config in MCP_SERVICES.values() 
-                             if check_mcp_service_health(config["internal_port"]))
+                             if check_mcp_service_health(config["internal_port"], config["container"]))
         total_services = len(MCP_SERVICES)
         
         # Check database connection
@@ -351,7 +394,7 @@ class ZENCoordinator(BaseHTTPRequestHandler):
         all_tools = []
         
         for service_name, config in MCP_SERVICES.items():
-            if check_mcp_service_health(config["internal_port"]):
+            if check_mcp_service_health(config["internal_port"], config["container"]):
                 for tool in config["tools"]:
                     all_tools.append({
                         "name": tool,
@@ -436,13 +479,13 @@ class ZENCoordinator(BaseHTTPRequestHandler):
                 return
             
             # Route to appropriate service
-            target_service, target_port = self.route_tool_to_service(tool_name)
+            target_service, target_port, target_container = self.route_tool_to_service(tool_name)
             
             if not target_service:
                 self.send_error(400, f"Unknown tool: {tool_name}")
                 return
             
-            if not check_mcp_service_health(target_port):
+            if not check_mcp_service_health(target_port, target_container):
                 self.send_error(502, f"Service {target_service} (port {target_port}) is offline")
                 return
             
@@ -453,7 +496,7 @@ class ZENCoordinator(BaseHTTPRequestHandler):
             }
             
             # Call MCP service
-            result = call_mcp_service(target_port, "tools/call", mcp_params)
+            result = call_mcp_service(target_port, "tools/call", mcp_params, target_container)
             
             # Log request
             log_mcp_request(target_service, tool_name, result["success"], 
@@ -494,13 +537,13 @@ class ZENCoordinator(BaseHTTPRequestHandler):
                 return
             
             # Route and execute
-            target_service, target_port = self.route_tool_to_service(tool_name)
+            target_service, target_port, target_container = self.route_tool_to_service(tool_name)
             
             if not target_service:
                 self.send_error(400, f"Unknown tool: {tool_name}")
                 return
             
-            if not check_mcp_service_health(target_port):
+            if not check_mcp_service_health(target_port, target_container):
                 self.send_error(502, f"Service {target_service} is offline")
                 return
             
@@ -508,7 +551,7 @@ class ZENCoordinator(BaseHTTPRequestHandler):
             result = call_mcp_service(target_port, "tools/call", {
                 "name": tool_name,
                 "arguments": tool_args
-            })
+            }, target_container)
             
             # Log request
             log_mcp_request(target_service, tool_name, result["success"],
@@ -531,29 +574,31 @@ class ZENCoordinator(BaseHTTPRequestHandler):
         # Direct tool mapping
         for service_name, config in MCP_SERVICES.items():
             if tool_name in config["tools"]:
-                return service_name, config["internal_port"]
+                return service_name, config["internal_port"], config["container"]
         
         # Prefix-based routing
         routing_prefixes = {
-            "file_": ("filesystem", 8001),
-            "git_": ("git", 8002),
-            "terminal_": ("terminal", 8003),
-            "shell_": ("terminal", 8003),
-            "db_": ("database", 8004),
-            "store_": ("memory", 8007),
-            "search_": ("memory", 8007),
-            "memory_": ("memory", 8007),
-            "transcribe_": ("transcriber", 8008),
-            "audio_": ("transcriber", 8008),
-            "research_": ("research", 8011),
-            "web_": ("research", 8011)
+            "file_": "filesystem",
+            "git_": "git", 
+            "terminal_": "terminal",
+            "shell_": "terminal",
+            "db_": "database",
+            "store_": "memory",
+            "search_": "memory", 
+            "memory_": "memory",
+            "transcribe_": "transcriber",
+            "audio_": "transcriber",
+            "research_": "research",
+            "web_": "research"
         }
         
-        for prefix, (service, port) in routing_prefixes.items():
+        for prefix, service_name in routing_prefixes.items():
             if tool_name.startswith(prefix):
-                return service, port
+                config = MCP_SERVICES.get(service_name)
+                if config:
+                    return service_name, config["internal_port"], config["container"]
         
-        return None, None
+        return None, None, None
 
 def setup_database():
     """Setup database tables for logging"""
@@ -614,7 +659,7 @@ def main():
     print()
     print("🔗 Protected MCP Services (Organized):")
     for name, config in MCP_SERVICES.items():
-        status = "🟢" if check_mcp_service_health(config["internal_port"]) else "🔴"
+        status = "🟢" if check_mcp_service_health(config["internal_port"], config["container"]) else "🔴"
         print(f"  {status} {name}: localhost:{config['internal_port']} - {config['description']}")
     print()
     print("✅ Ready for secure organized MCP communication...")

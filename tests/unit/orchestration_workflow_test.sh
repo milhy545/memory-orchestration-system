@@ -38,10 +38,10 @@ echo '=============================='
 
 # Check all required services
 echo '🔍 Checking Zen Coordinator status...'
-ZEN_STATUS=$(curl -s http://localhost:8020/status)
-if echo "$ZEN_STATUS" | grep -q '"coordinator": "active"'; then
-    test_pass "Zen Coordinator is active"
-    echo "   Services: $(echo "$ZEN_STATUS" | grep -o '"[a-z_]*": "http[^"]*"' | wc -l) available"
+ZEN_STATUS=$(curl -s http://localhost:8020/health)
+if echo "$ZEN_STATUS" | grep -q '"status": "healthy"'; then
+    test_pass "Zen Coordinator is healthy"
+    echo "   Services: $(echo "$ZEN_STATUS" | grep -o '"services_running": [0-9]*' | grep -o '[0-9]*') running"
 else
     test_fail "Zen Coordinator not responding" "$ZEN_STATUS"
     exit 1

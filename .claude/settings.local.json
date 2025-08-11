@@ -11,8 +11,28 @@
       "Bash(git remote set-url:*)",
       "Bash(git push:*)",
       "Bash(rg:*)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(curl:*)",
+      "Bash(docker-compose build:*)",
+      "Bash(docker-compose up:*)",
+      "Bash(docker logs:*)",
+      "Bash(chmod:*)",
+      "Bash(pip install:*)",
+      "Bash(source:*)",
+      "Bash(docker exec:*)",
+      "Bash(docker-compose restart:*)",
+      "Bash(./scripts/health-check.sh:*)",
+      "Bash(./tests/unit/orchestration_workflow_test.sh:*)"
     ],
     "deny": []
+  },
+  "mcpServers": {
+    "zen-orchestration": {
+      "command": "/home/orchestration/.venv/bin/python",
+      "args": [
+        "/home/orchestration/mcp-wrapper.py"
+      ],
+      "description": "ZEN Coordinator - MCP Orchestration System"
+    }
   }
 }
