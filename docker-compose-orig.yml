@@ -117,50 +117,31 @@ services:
 
   # 8006: Network MCP - Network Operations (placeholder - to be implemented)
   network-mcp:
-    image: python:3.11-slim
+    build: /home/orchestration/mcp-servers/network-mcp
     container_name: mcp-network
     ports:
       - "8006:8000"
     working_dir: /app
-    command: >
-      sh -c "
-      pip install fastapi uvicorn requests &&
-      echo 'from fastapi import FastAPI; app = FastAPI(); @app.get(\"/health\"); def health(): return {\"status\": \"healthy\", \"service\": \"Network MCP\", \"port\": 8000}' > main.py &&
-      uvicorn main:app --host 0.0.0.0 --port 8000
-      "
-    restart: unless-stopped
     networks:
       - mcp-network
 
   # 8007: System MCP - System Info (placeholder - to be implemented)  
   system-mcp:
-    image: python:3.11-slim
+    build: /home/orchestration/mcp-servers/system-mcp
     container_name: mcp-system
     ports:
       - "8007:8000"
     working_dir: /app
-    command: >
-      sh -c "
-      pip install fastapi uvicorn psutil &&
-      echo 'from fastapi import FastAPI; import psutil; app = FastAPI(); @app.get(\"/health\"); def health(): return {\"status\": \"healthy\", \"service\": \"System MCP\", \"port\": 8000, \"cpu\": psutil.cpu_percent(), \"memory\": psutil.virtual_memory().percent}' > main.py &&
-      uvicorn main:app --host 0.0.0.0 --port 8000
-      "
-    restart: unless-stopped
     networks:
       - mcp-network
 
   # 8008: Security MCP - Security Operations (placeholder - to be implemented)
   security-mcp:
-    image: python:3.11-slim
+    build: /home/orchestration/mcp-servers/security-mcp
     container_name: mcp-security
     ports:
       - "8008:8000"
     working_dir: /app
-    command: >
-      sh -c "
-      pip install fastapi uvicorn cryptography &&
-      echo 'from fastapi import FastAPI; app = FastAPI(); @app.get(\"/health\"); def health(): return {\"status\": \"healthy\", \"service\": \"Security MCP\", \"port\": 8000}' > main.py &&
-      uvicorn main:app --host 0.0.0.0 --port 8000
       "
     restart: unless-stopped
     networks:
@@ -168,16 +149,11 @@ services:
 
   # 8009: Config MCP - Configuration Management (placeholder - to be implemented)
   config-mcp:
-    image: python:3.11-slim
+    build: /home/orchestration/mcp-servers/config-mcp
     container_name: mcp-config
     ports:
       - "8009:8000"
     working_dir: /app
-    command: >
-      sh -c "
-      pip install fastapi uvicorn pydantic &&
-      echo 'from fastapi import FastAPI; app = FastAPI(); @app.get(\"/health\"); def health(): return {\"status\": \"healthy\", \"service\": \"Config MCP\", \"port\": 8000}' > main.py &&
-      uvicorn main:app --host 0.0.0.0 --port 8000
       "
     restart: unless-stopped
     networks:
@@ -185,16 +161,11 @@ services:
 
   # 8010: Log MCP - Logging Operations (placeholder - to be implemented)
   log-mcp:
-    image: python:3.11-slim
+    build: /home/orchestration/mcp-servers/log-mcp
     container_name: mcp-log
     ports:
       - "8010:8000"
     working_dir: /app
-    command: >
-      sh -c "
-      pip install fastapi uvicorn &&
-      echo 'from fastapi import FastAPI; app = FastAPI(); @app.get(\"/health\"); def health(): return {\"status\": \"healthy\", \"service\": \"Log MCP\", \"port\": 8000}' > main.py &&
-      uvicorn main:app --host 0.0.0.0 --port 8000
       "
     restart: unless-stopped
     networks:
@@ -266,16 +237,11 @@ services:
 
   # 8014-8019: Placeholders for future AI services
   vision-mcp:
-    image: python:3.11-slim
+    build: /home/orchestration/mcp-servers/system-mcp
     container_name: mcp-vision
     ports:
       - "8014:8000"
     working_dir: /app
-    command: >
-      sh -c "
-      pip install fastapi uvicorn pillow &&
-      echo 'from fastapi import FastAPI; app = FastAPI(); @app.get(\"/health\"); def health(): return {\"status\": \"healthy\", \"service\": \"Vision MCP\", \"port\": 8000}' > main.py &&
-      uvicorn main:app --host 0.0.0.0 --port 8000
       "
     restart: unless-stopped
     networks:
@@ -351,7 +317,7 @@ services:
 
   # 8029: Backup Service - Automated backups
   backup-service:
-    image: python:3.11-slim
+    build: /home/orchestration/mcp-servers/system-mcp
     container_name: mcp-backup
     ports:
       - "8029:8000"
@@ -359,11 +325,6 @@ services:
     volumes:
       - /home/orchestration/data:/data:ro
       - /home/orchestration/data/backups:/backups
-    command: >
-      sh -c "
-      pip install fastapi uvicorn schedule &&
-      echo 'from fastapi import FastAPI; app = FastAPI(); @app.get(\"/health\"); def health(): return {\"status\": \"healthy\", \"service\": \"Backup MCP\", \"port\": 8000}' > main.py &&
-      uvicorn main:app --host 0.0.0.0 --port 8000
       "
     restart: unless-stopped
     networks:
