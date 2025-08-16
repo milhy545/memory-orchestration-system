@@ -380,42 +380,6 @@ services:
     networks:
       - mcp-network
 
-
-  # ============================================================================
-  # 8014-8015: MQTT Services (Message Queue and IoT Communication)  
-  # ============================================================================
-
-  # 8014: MQTT Broker - Mosquitto Message Broker
-  mqtt-broker:
-    image: eclipse-mosquitto:2
-    container_name: mqtt-broker
-    ports:
-      - "8018:1883"
-    volumes:
-      - /home/orchestration/mcp-servers/mqtt-broker/config:/mosquitto/config
-      - /home/orchestration/data/mqtt-data:/mosquitto/data
-      - /home/orchestration/data/mqtt-log:/mosquitto/log
-    restart: unless-stopped
-    networks:
-      - mcp-network
-
-  # 8015: MQTT MCP Server - MQTT Operations via MCP Protocol
-  mqtt-mcp:
-    build: /home/orchestration/mcp-servers/mqtt-mcp
-    container_name: mcp-mqtt
-    ports:
-      - "8019:8000"
-    environment:
-      - MQTT_BROKER=mqtt-broker
-      - MQTT_PORT=1883
-      - MQTT_USERNAME=mcp_admin
-      - MQTT_PASSWORD=mcp_secure_mqtt_2024
-    depends_on:
-      - mqtt-broker
-    restart: unless-stopped
-    networks:
-      - mcp-network
-
 networks:
   mcp-network:
     driver: bridge
