@@ -22,7 +22,14 @@
       "Bash(docker exec:*)",
       "Bash(docker-compose restart:*)",
       "Bash(./scripts/health-check.sh:*)",
-      "Bash(./tests/unit/orchestration_workflow_test.sh:*)"
+      "Bash(./tests/unit/orchestration_workflow_test.sh:*)",
+      "Bash(/install-github-app)",
+      "Bash(grep:*)",
+      "WebSearch",
+      "Bash(git restore:*)",
+      "Read(//tmp/**)",
+      "Bash(./tests/unit/memory_crud_test.sh:*)",
+      "Bash(docker ps:*)"
     ],
     "deny": []
   },

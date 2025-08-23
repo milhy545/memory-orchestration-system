@@ -12,21 +12,31 @@ This is an MCP (Model Context Protocol) orchestration system that provides a uni
 
 ## Key Services Architecture
 
-The system uses a service mesh pattern where all MCP services connect to:
-- PostgreSQL database (`mcp_unified` database, port 5432)
-- Redis cache (port 8009 mapped to 6379)
-- Zen Coordinator routes requests between services
+The system uses a service mesh pattern with Docker containers where all MCP services connect to shared infrastructure:
+- **PostgreSQL**: Unified database (`mcp_unified`) on port 8021 (internal port 5432)
+- **Redis**: Caching and sessions on port 8022 (internal port 6379)  
+- **Qdrant**: Vector database on port 8023 (internal port 6333)
+- **Zen Coordinator**: HTTP→MCP protocol bridge routes all requests
 
-### MCP Services
-- `filesystem-mcp` (port 8001) - File system operations
-- `git-mcp` (port 8002) - Git operations (status, log, diff)
-- `terminal-mcp` (port 8003) - Command execution
-- `database-mcp` (port 8004) - Database operations
-- `memory-mcp` (port 8005) - Memory/persistence (FastAPI)
-- `cldmemory-api` (port 8006) - Advanced memory with vector search
-- `qdrant-vector` (port 8007) - Vector database
-- `webm-transcriber` (port 8008) - Audio transcription
-- `research-mcp` (port 8011) - Research operations
+### Core MCP Services (Ports 8001-8010)
+- `filesystem-mcp` (8001) - File operations with workspace mounting
+- `git-mcp` (8002) - Git operations (status, log, diff) - read-only
+- `terminal-mcp` (8003) - Command execution with privileged access
+- `database-mcp` (8004) - Database operations and schema management
+- `memory-mcp` (8005) - Simple memory/persistence (FastAPI)
+- `network-mcp` (8006) - Network operations (placeholder)
+- `system-mcp` (8007) - System information (placeholder)
+- `security-mcp` (8008) - Security operations (placeholder)
+- `config-mcp` (8009) - Configuration management (placeholder)
+- `log-mcp` (8010) - Logging operations (placeholder)
+
+### AI/Enhanced Services (Ports 8011+)
+- `research-mcp` (8011) - Perplexity AI research integration
+- `advanced-memory-mcp` (8012) - Vector-based memory with Qdrant
+- `transcriber-mcp` (8013) - Audio transcription (WebM/MP3)
+- `vision-mcp` (8014) - Vision processing (placeholder)
+- `mqtt-broker` (8018) - Message queue broker
+- `mqtt-mcp` (8019) - MQTT operations via MCP protocol
 
 ## Common Development Commands
 
@@ -88,13 +98,16 @@ All tools are accessed through the Zen Coordinator at `http://localhost:8020/mcp
 }
 ```
 
-### Available Tools:
-- `execute_command` → terminal-mcp
-- `list_files`, `read_file` → filesystem-mcp  
-- `git_execute` → git-mcp (supports: status, log, diff)
-- `store_memory`, `search_memories` → memory-mcp
-- `transcribe_audio`, `transcribe_url` → webm-transcriber
-- Email tools → gmail (stdio)
+### Tool Routing Map:
+- `execute_command`, `terminal_exec`, `shell_command` → terminal-mcp
+- `file_read`, `file_write`, `list_files`, `file_search` → filesystem-mcp  
+- `git_status`, `git_log`, `git_diff` → git-mcp (read-only operations)
+- `store_memory`, `search_memories`, `memory_stats` → memory-mcp
+- `transcribe_webm`, `transcribe_url`, `audio_convert` → transcriber-mcp
+- `research_query`, `perplexity_search` → research-mcp
+- `db_query`, `db_connect`, `db_schema` → database-mcp
+
+The Zen Coordinator uses prefix-based routing (e.g., `file_*` → filesystem) and direct tool name mapping.
 
 ## Data Persistence
 
@@ -106,18 +119,23 @@ All tools are accessed through the Zen Coordinator at `http://localhost:8020/mcp
 - **Repositories**: `data/repositories/` (git operations)
 
 ## Service URLs for Direct Access
-- Zen Coordinator: http://localhost:8020
-- Filesystem MCP: http://localhost:8001
-- Git MCP: http://localhost:8002  
-- Terminal MCP: http://localhost:8003
-- Database MCP: http://localhost:8004
-- Memory MCP: http://localhost:8005 (FastAPI docs: /docs)
-- Advanced Memory (CLDMEMORY): http://localhost:8006
-- Qdrant Vector DB: http://localhost:8007 (UI port 6333)
-- WebM Transcriber: http://localhost:8008
-- Research MCP: http://localhost:8011
-- PostgreSQL: localhost:5432
-- Redis: localhost:8009 (internal port 6379)
+- **Zen Coordinator**: http://localhost:8020 (main entry point)
+- **Core MCP Services**:
+  - Filesystem MCP: http://localhost:8001
+  - Git MCP: http://localhost:8002  
+  - Terminal MCP: http://localhost:8003
+  - Database MCP: http://localhost:8004
+  - Memory MCP: http://localhost:8005 (FastAPI docs: /docs)
+- **AI/Enhanced Services**:
+  - Research MCP: http://localhost:8011
+  - Advanced Memory: http://localhost:8012 (Node.js + Qdrant)
+  - Transcriber MCP: http://localhost:8013
+- **Infrastructure Services**:
+  - PostgreSQL: localhost:8021 (internal: 5432)
+  - Redis: localhost:8022 (internal: 6379)
+  - Qdrant Vector DB: localhost:8023 (internal: 6333)
+  - MQTT Broker: localhost:8018 (internal: 1883)
+  - Monitoring: http://localhost:8028 (Prometheus)
 
 ## Environment Configuration
 
@@ -126,11 +144,30 @@ Each MCP service uses these environment variables:
 - `REDIS_URL`: Redis connection string
 - Service-specific keys (GEMINI_API_KEY, PERPLEXITY_API_KEY)
 
-## Development Notes
+## Architecture Patterns
 
-- All MCP servers are containerized with individual Dockerfiles
-- Services communicate through the shared PostgreSQL database and Redis cache
-- The Zen Coordinator provides HTTP→MCP protocol translation
-- Memory services support both simple storage and vector-based search
-- Git operations are limited to read-only commands (status, log, diff)
-- Testing includes workflow chains, performance benchmarks, and concurrent operations
+### Service Communication
+- **Protocol Translation**: Zen Coordinator converts HTTP requests to MCP JSON-RPC 2.0
+- **Service Discovery**: Container-based networking with service names (e.g., `mcp-filesystem`)
+- **Shared Infrastructure**: All services connect to unified PostgreSQL, Redis, and Qdrant
+- **Request Logging**: PostgreSQL stores all MCP request metrics with response times
+- **Caching Layer**: Redis provides 5-minute caching for read operations (`tools/list`, `health`)
+
+### Container Architecture
+- **Multi-stage Builds**: Each MCP service has its own Dockerfile in `mcp-servers/`
+- **Volume Mapping**: Selective mounts (workspaces, repositories, databases, temp files)
+- **Network Isolation**: All services run on `mcp-network` bridge network
+- **Privilege Management**: Terminal MCP runs privileged, others run as restricted users
+- **Health Checks**: Socket-based connectivity tests with fallback mechanisms
+
+### Development Workflow Integration
+- **Comprehensive Testing**: Unit, performance, security, and failure recovery test suites
+- **Monitoring**: Prometheus metrics on port 8028 with container status tracking
+- **Backup Strategy**: Automated database backups to `data/backups/`
+- **Log Management**: Centralized logging via `data/logs/` with service-specific subdirectories
+
+### Production Considerations
+- Environment-based configuration (no hardcoded credentials)
+- Database connection pooling and Redis connection reuse
+- Git operations limited to read-only for security
+- MQTT integration for IoT and real-time communication patterns

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-\"\"\"
+"""
 Qdrant MCP Service - Vector database operations, embeddings, similarity search
 Port: 8023
-\"\"\"
+"""
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 from qdrant_client import AsyncQdrantClient
